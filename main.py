@@ -1,62 +1,63 @@
 import os
 from pathlib import Path
-from time import sleep
 from pprint import pprint
 
-class Organizer:
-    def __init__(self):
-        self.file_extensions = {
-            "Pictures": [
-                ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".svg", ".webp"
-            ],
-            "Videos": [
-                ".mp4", ".mkv", ".flv", ".avi", ".mov", ".wmv", ".webm", ".mpeg"
-            ],
-            "Documents": [
-                ".doc", ".docx", ".pdf", ".txt", ".rtf", ".odt", ".ppt", ".pptx",
-                ".xls", ".xlsx", ".csv", ".md"
-            ],
-            "Music": [
-                ".mp3", ".wav", ".flac", ".aac", ".ogg", ".wma", ".m4a", ".aiff", ".alac"
-            ]
-        }
+file_extensions = {
+    "Pictures": [
+        ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".svg", ".webp"
+    ],
+    "Videos": [
+        ".mp4", ".mkv", ".flv", ".avi", ".mov", ".wmv", ".webm", ".mpeg"
+    ],
+    "Documents": [
+        ".doc", ".docx", ".pdf", ".txt", ".rtf", ".odt", ".ppt", ".pptx",
+        ".xls", ".xlsx", ".csv", ".md"
+    ],
+    "Music": [
+        ".mp3", ".wav", ".flac", ".aac", ".ogg", ".wma", ".m4a", ".aiff", ".alac"
+    ]
+}
 
-        root_path = os.path.abspath(Path("/"))
-        os.chdir(Path(f"{root_path}/Users"))
-        users_dir_lst = os.listdir(os.getcwd())
-        self.username = users_dir_lst[1]
-        os.chdir(Path(f"{os.getcwd()}/{self.username}"))
-        self.main_dir_names = ["Downloads", "Desktop", "Pictures", "Videos", "Music"]
-        self.dvpd_dir_dict = {dir_name: os.listdir(Path(f"./{dir_name}")) for dir_name in self.main_dir_names}
+target_path = input("Please Enter The Path of The Target Directory: ")
+modified_target_path = Path(target_path)
 
+# List of Items In Directory
+target_dir = os.listdir(modified_target_path)
 
-    def organize(self, dir_name):
-        for filename in self.dvpd_dir_dict[f"{dir_name}"]:
-            try:
-                file_extension = filename.split('.')[1]
-            except IndexError:
-                file_extension = "!extensions"
-
-            for k, v in self.file_extensions.items():
-                if f".{file_extension}" in v:
-                    try:
-                        os.rename(Path(f"./{dir_name}/{filename}"), Path(f"./{k}/{filename}"))
-                    except FileNotFoundError and FileExistsError:
-                        pass
+# Getting Documents, Videos, Pictures, Music in Users Directory
+user_path = f"C:/Users/"
+user_items = os.listdir(Path(user_path))
 
 
-organizer_cls = Organizer()
-run = True
-while run:
-    chosen_directory = input('Please select which folder you would like to reorganize ("Downloads", "Desktop", "Pictures", "Videos", "Music"): ').capitalize()
-    if chosen_directory in organizer_cls.main_dir_names:
-        organizer_cls.organize(chosen_directory)
-        print("\n...")
-        sleep(1)
-        print("Folder reorganized")
-        should_restart = input("\nWould you like to reorganize another folder (yes/no): ").lower()
-        if should_restart == "no":
-            print("Take Care!")
-            run = False
-    else:
-        print("Invalid Input!!! Please select the correct folder.")
+def get_des_paths():
+    # Identifies the user's username then obtains destination paths
+    for dir in user_items:
+        dir_with_onedrive = Path(f"{user_path}{dir}/OneDrive")
+        if os.path.isdir(dir_with_onedrive):
+            user_name = f"{user_path}{dir}/"
+            destination_names = ["Documents", "Videos", "Pictures", "Music"]
+            destination_paths = [user_name + des_name for des_name in destination_names]
+
+            return destination_paths
+
+
+def move_files_to_des(destination_paths):
+    # Loops through files in targeted directory
+    for filename in target_dir:
+        for k, v in file_extensions.items():
+
+            # Identifies source and destination paths
+            for ext in v:
+                if ext in filename:
+                    for des_path in destination_paths:
+                        src_path = Path(target_path + "/" + filename)
+                        if k in des_path:
+                            des_path = Path(des_path + "/" + filename)
+
+                            # Moves file to appropriate Destination (e.g .mp3 to Music Directory)
+                            os.rename(src_path, des_path)
+
+
+destination_paths = get_des_paths()
+move_files_to_des(destination_paths)
+print("Your Files have been successfully arranged")
