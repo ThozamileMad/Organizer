@@ -20,6 +20,13 @@ file_extensions = {
 des_paths = {des_name: os.path.expanduser("~") + "\\" + des_name for des_name in file_extensions}
 
 
+def is_duplicate_file_path(path):
+    if os.path.exists(path):
+        return True
+    else:
+        return False
+
+
 def get_src_and_des_path(extension_lst, des_path):
     target_dir = os.listdir(src_path)
     paths = []
@@ -28,12 +35,18 @@ def get_src_and_des_path(extension_lst, des_path):
         for extension in extension_lst:
             # Compares files to extension
             if extension in file_path:
-                path_item = {"src_path": src_path + "\\" + file_path,
-                             "des_path": des_path + "\\" + file_path,
+                modified_src_path = src_path + "\\" + file_path
+                modified_des_path = des_path + "\\" + file_path
+                
+                path_item = {"src_path": modified_src_path,
+                             "des_path": modified_des_path,
                              "des_dir": des_path}
 
-                if path_item not in paths:
+                if is_duplicate_file_path(modified_des_path):
+                    pass
+                elif path_item not in paths:
                     paths.append(path_item)
+                    
     return paths
 
 
@@ -47,14 +60,19 @@ def move_files_based_on_type(src_des_dict):
 
 
 def move_all_files():
-    path_data = [get_src_and_des_path(file_extensions[key], des_paths[key]) for key in file_extensions]
-    for lst in path_data:
-        move_files_based_on_type(lst)
-    print("All FILES REARRANGED")
+    try:
+        path_data = [get_src_and_des_path(file_extensions[key], des_paths[key]) for key in file_extensions if len(get_src_and_des_path(file_extensions[key], des_paths[key])) != 0]
+        for lst in path_data:
+            move_files_based_on_type(lst)
+            
+        if len(path_data) != 0:
+            print("All FILES REARRANGED")
+        
+    except FileNotFoundError:
+        print("Sorry File Not Found!!! Please Enter a valid file path.")
 
 
 os.chdir("/")
-print(os.path.isdir('C:\\Users\\Church\\Documents\\Assignment   2024 INS511 -QUESTION.docx'))
 src_path = input("Please Enter The Path of The Target Directory: ")
 # Moves every file to it's appropriate folders (.mp3 to Music, .jpg to Pictures)
 move_all_files()
