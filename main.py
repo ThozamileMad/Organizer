@@ -1,7 +1,65 @@
 import os
 from pathlib import Path
 
-user_dir = os.path.join(os.path.expanduser("~"))
+
+def modify_duplicate(file, des_lst, dir_name):
+    file_segs = file.split(".")
+    print(file_segs)
+    print(file.split(".")[-2][-2])
+    try:
+        # Finds the last duplicate's number in destination
+        dup_num = [filename.split(".")[-2][-2] for filename in des_lst][-1]
+        print(dup_num)
+        file_segs.insert(-1, f"({dup_num + 1})")
+        
+        # Creates new file duplicate with new number
+        new_dup = "".join(file_segs)
+
+        # Makes duplicate in destination folder
+        src = os.path.join(src_path, file) # source path
+        des = os.path.join(ext_des[dir_name]["des"], new_dup) # destination path
+        os.rename(src, des)
+        print(f"{src}  ->  {ext_des[dir_name]['des']} (File Duplicate)")
+    except IndexError or ValueError:
+        # Defaults to creating first duplicate if not other duplicates exist
+        file_segs.insert(-1, f"(1).")
+        new_dup = "".join(file_segs)
+        
+        src = os.path.join(src_path, file) # source path
+        des = os.path.join(ext_des[dir_name]["des"], new_dup) # destination path
+        os.rename(src, des)
+        print(f"{src}  ->  {ext_des[dir_name]['des']} (File Duplicate)")
+    
+
+def move_file(file):
+    dir_names = ["Pictures", "Documents", "Videos", "Music"]
+
+    for dir_name in dir_names:
+        ext = "." + file.split(".")[-1] # File extension
+        src = os.path.join(src_path, file) # source path
+        des = os.path.join(ext_des[dir_name]["des"], file) # destination path
+        in_des = os.path.exists(des) # Checks if file is in destination dir
+
+        src_files = os.listdir(src_path)
+        des_files = os.listdir(ext_des[dir_name]["des"])
+        if file in src_files and file in des_files:
+            modify_duplicate(file, des_files, dir_name) 
+        if ext in ext_des[dir_name]["ext"] and not in_des:
+            os.rename(src, des) # Moves file to appropriate folder
+            global files_moved
+            files_moved += 1
+            print(f"{src}  ->  {ext_des[dir_name]['des']}")
+
+            
+
+def move_all_files():
+    target_dir = os.listdir(src_path) # Files in User Input Directory
+    for file in target_dir:
+        move_file(file)
+    print(f"{files_moved} Files Reorganized.")
+    
+
+user_dir = os.path.join(os.path.expanduser("~")) # User's Directory
                         
 ext_des = {
     "Pictures": {
@@ -23,65 +81,8 @@ ext_des = {
         }
 }
 
-
-def is_duplicate_file_path(path):
-    if os.path.exists(path):
-        return True
-    else:
-        return False
-
-
-def get_src_and_des_path(extension_lst, des_path):
-    target_dir = os.listdir(src_path)
-    paths = []
-
-    for file_path in target_dir:
-        for extension in extension_lst:
-            # Compares files to extension
-            if extension in file_path:
-                modified_src_path = os.path.join(src_path, file_path)
-                modified_des_path = os.path.join(des_path, file_path)
-            
-                path_item = {"src_path": modified_src_path,
-                             "des_path": modified_des_path,
-                             "des_dir": des_path}
-
-                if is_duplicate_file_path(modified_des_path):
-                    pass
-                elif path_item not in paths:
-                    paths.append(path_item)
-                    
-    return paths
-
-
-def move_files_based_on_type(src_des_dict):
-    for paths in src_des_dict:
-        s_path = paths["src_path"]
-        d_path = paths["des_path"]
-        dir_path = paths['des_dir']
-        os.rename(Path(s_path), Path(d_path))
-        print(f"File: '{s_path}', moved to: '{dir_path}'")
-
-
-def move_all_files():
-    try:
-        path_data = [get_src_and_des_path(ext_des[key]["ext"], ext_des[key]["des"])
-                     for key in ext_des
-                     if len(get_src_and_des_path(ext_des[key]["ext"], ext_des[key]["des"])) != 0]
-        
-        for lst in path_data:
-            move_files_based_on_type(lst)
-            
-        if len(path_data) != 0: 
-            print("All FILES REARRANGED")
-        
-    except FileNotFoundError:
-        print("Sorry File Not Found!!! Please Enter a valid file path.")
-
-
 os.chdir("/")
 src_path = input("Please Enter The Path of The Target Directory: ")
-# Moves every file to it's appropriate folders (.mp3 to Music, .jpg to Pictures)
+files_moved = 0
 move_all_files()
 
-# C:\Users\Church\Downloads
