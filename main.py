@@ -44,7 +44,8 @@ def modify_duplicate(file, des_lst):
 
 
 def move_file(file):
-    dir_names = ["Pictures", "Documents", "Videos", "Music"]
+    dir_names = [key for key in ext_des if os.path.exists(ext_des[key]["des"])]
+    
 
     for dir_name in dir_names:
         ext = "." + file.split(".")[-1]  # File extension
